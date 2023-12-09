@@ -1,2 +1,4 @@
 Bananas
 Spinach
+Honeydew
+Rice

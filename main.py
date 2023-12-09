@@ -1,4 +1,3 @@
-# Jennifer Yang Birthday Tracker
 import tkinter as tk
 import datetime
 
@@ -56,7 +55,6 @@ def addToDict(food, quantity):
     return
   foodDict[food] = [int(quantity), str(datetime.date.today())]
   addWindow.destroy()
-
 
 def addFood():
   global addWindow
