@@ -32,6 +32,10 @@ for line in foodFile:
 foodFile.close()
 
 shoppingFile = open('shoppinglist.txt', 'r')
+for line in shoppingFile:
+  line = line.split()
+  shoppingList.append(line[0])
+shoppingFile.close()
 
 def displayFood():
   global foodDict, addWindow
