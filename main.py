@@ -1,7 +1,6 @@
 # Jennifer Yang Birthday Tracker
 import tkinter as tk
 import datetime
-from dateutil.relativedelta import relativedelta
 
 # Creating window
 window = tk.Tk()
@@ -105,6 +104,11 @@ def groceryList():
   closeButton = tk.Button(master=groceryEdit, text="Close", command=lambda:groceryEdit.destroy())
   closeButton.pack()
 
+def updateEditedFood(food, quan):
+  global foodDict
+  foodDict[food][0] = int(quan)
+  foodDict[food][1] = str(datetime.date.today())
+
 def editFood():
   global foodDict
   editWindow = tk.Toplevel()
@@ -116,8 +120,10 @@ def editFood():
   dropFrame.pack()
   quantityEntry = tk.Entry(master=editWindow, width=5)
   quantityEntry.pack()
-  editButton = tk.Button(master=editWindow, text="Save", command=lambda:editWindow.destroy())
+  editButton = tk.Button(master=editWindow, text="Save", command=lambda:updateEditedFood(groceryLabel.get(), quantityEntry.get()))
   editButton.pack()
+  closeButton = tk.Button(master=editWindow, text="Close", command=lambda:editWindow.destroy())
+  closeButton.pack()
 
 def saveAndExit():
   global window
