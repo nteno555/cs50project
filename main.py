@@ -1,3 +1,4 @@
+# Jennifer Yang Grocery Tracker
 import tkinter as tk
 import datetime
 
@@ -7,7 +8,6 @@ window.title("Grocery Tracker")
 foodDict = {}
 shoppingList = []
 
-# Month and date lists
 months = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
     "Nov", "Dec"
@@ -20,13 +20,12 @@ dates = [
 today = str(datetime.date.today())
 today = months[int(today[5:7])-1]+" "+today[-2:]+", "+today[:4]
 
-# Reading current birthdays in file into dictionary
+# Reading data
 foodFile = open('food.txt', 'r')
 foodFile.seek(0)
 for line in foodFile:
   line = line.split()
   foodDict[line[0][:-1]] = [int(line[1]), line[5][:-1]]
-# Closing file
 foodFile.close()
 
 shoppingFile = open('shoppinglist.txt', 'r')
