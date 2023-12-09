@@ -1,185 +1,141 @@
 # Jennifer Yang Birthday Tracker
 import tkinter as tk
-import time
 import datetime
 from dateutil.relativedelta import relativedelta
 
 # Creating window
 window = tk.Tk()
-window.title("Birthday Tracker")
-birthdayDict = {}
+window.title("Grocery Tracker")
+foodDict = {}
+shoppingList = []
 
-# Reading current birthdays in file into dictionary
-birthdayFile = open('birthdays.txt', 'r')
-birthdayFile.seek(0)
-for line in birthdayFile:
-  birthdayDict[line[:line.find(":")]] = line[line.find("/") -
-                                             2:line.find("/") + 8]
-# Closing file
-birthdayFile.close()
-
-# Month list for converting from month name to month number and dropdown
+# Month and date lists
 months = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
     "Nov", "Dec"
 ]
-# Date list for dropdown
 dates = [
     "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12",
     "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24",
     "25", "26", "27", "28", "29", "30", "31"
 ]
+today = str(datetime.date.today())
+today = months[int(today[5:7])-1]+" "+today[-2:]+", "+today[:4]
+
+# Reading current birthdays in file into dictionary
+foodFile = open('food.txt', 'r')
+foodFile.seek(0)
+for line in foodFile:
+  line = line.split()
+  foodDict[line[0][:-1]] = [int(line[1]), line[5][:-1]]
+# Closing file
+foodFile.close()
+
+shoppingFile = open('shoppinglist.txt', 'r')
+
+def displayFood():
+  global foodDict, addWindow
+  displayWindow = tk.Toplevel()
+  for food in foodDict:
+    foodDictDate = months[int(foodDict[food][1][5:7])-1]+" "+foodDict[food][1][-2:]+", "+foodDict[food][1][:4]
+    tk.Label(master=displayWindow, text=food+": "+str(foodDict[food][0])+" servings since "+foodDictDate).pack()
+  closeButton = tk.Button(master=displayWindow, text="Close", command=lambda:displayWindow.destroy())
+  closeButton.pack()
+
+def addToDict(food, quantity):
+  global foodDict, addWindow
+  if (food in foodDict):
+    errorWindow = tk.Toplevel()
+    errorMessage = tk.Label(master=errorWindow, text="Grocery already exists")
+    errorMessage.pack()
+    errorClose = tk.Button(master=errorWindow, text="Close", command=lambda:errorWindow.destroy())
+    errorClose.pack()
+    return
+  foodDict[food] = [int(quantity), str(datetime.date.today())]
+  addWindow.destroy()
 
 
-# Editing the dictionary if save pressed and closes editWindow
-def updateEditedBirthdays(name, newMonth, newDate, newYear):
-  global editWindow, birthdayDict
-  if (months.index(newMonth) < 9):
-    newMonth = "0" + str(months.index(newMonth) + 1)
-  else:
-    newMonth = str(months.index(newMonth) + 1)
-  birthdayDict[name] = newMonth + "/" + newDate + "/" + newYear
-  editWindow.destroy()
-
-
-# Edit birthday window
-def editBirthdays():
-  global birthdayDict, editWindow
-  names = []
-  for name in birthdayDict:
-    names.append(name)
-  editWindow = tk.Toplevel()
-  nameLabel = tk.StringVar()
-  nameLabel.set("Select the birthday to edit")
-  nameDropdown = tk.OptionMenu(editWindow, nameLabel, *names)
-  newYearLabel = tk.Label(master=editWindow, text="Enter the new birth year")
-  newYear = tk.Entry(master=editWindow, width=6)
-  nameDropdown.pack()
-  monthLabel = tk.StringVar()
-  monthLabel.set("Select a month")
-  monthDrop = tk.OptionMenu(editWindow, monthLabel, *months)
-  dateLabel = tk.StringVar()
-  dateLabel.set("Select a date")
-  dateDrop = tk.OptionMenu(editWindow, dateLabel, *dates)
-  saveButton = tk.Button(
-      master=editWindow,
-      text="Save",
-      command=lambda: updateEditedBirthdays(nameLabel.get(), monthLabel.get(),
-                                            dateLabel.get(), newYear.get()))
-  nameDropdown.pack()
-  newYearLabel.pack()
-  newYear.pack()
-  monthDrop.pack()
-  dateDrop.pack()
+def addFood():
+  global addWindow
+  addWindow = tk.Toplevel()
+  nameFrame = tk.Frame(master=addWindow)
+  foodLabel = tk.Label(master=nameFrame, text="Enter grocery: ")
+  foodEntry = tk.Entry(master=nameFrame, width=12)
+  foodLabel.pack()
+  foodEntry.pack()
+  nameFrame.pack()
+  quantityFrame = tk.Frame(master=addWindow)
+  quantityLabel = tk.Label(master=addWindow, text="Enter quantity: ")
+  quantityEntry = tk.Entry(master=addWindow, width=4)
+  quantityLabel.pack()
+  quantityEntry.pack()
+  quantityFrame.pack()
+  saveButton = tk.Button(master=addWindow, text="Save", command=lambda:addToDict(foodEntry.get(), quantityEntry.get()))
   saveButton.pack()
 
+def displayGroceryList():
+  global shoppingList
+  groceryDisplay = tk.Toplevel()
+  for item in shoppingList:
+    tk.Label(master=groceryDisplay, text=item).pack()
+  closeGrocery = tk.Button(master=groceryDisplay, text="Close", command=lambda:groceryDisplay.destroy())
+  closeGrocery.pack()
 
-# Display birthday window
-def displayBirthdays():
-  global birthdayDict
-  displayWindow = tk.Toplevel()
-  today = datetime.date.today()
-  for bday in birthdayDict:
-    bdayDate = datetime.date(int(birthdayDict[bday][6:]),
-                             int(birthdayDict[bday][:2]),
-                             int(birthdayDict[bday][3:5]))
-    rdelta = relativedelta(today, bdayDate)
-    tk.Label(master=displayWindow,
-             text=bday + " (" + birthdayDict[bday] + ") is " +
-             str(rdelta.years) + " years " + str(rdelta.months) + " months " +
-             str(rdelta.days) + " days old.").pack()
-  tk.Button(master=displayWindow,
-            text="Close",
-            command=lambda: displayWindow.destroy()).pack()
+def updateGroceryList(food):
+  global foodDict, shoppingList
+  food = food.lower()
+  food = food[0].upper() + food[1:]
+  if food in shoppingList: shoppingList.remove(food)
+  else: shoppingList.append(food)
 
+def groceryList():
+  global shoppingList, foodDict
+  groceryEdit = tk.Toplevel()
+  tk.Label(master=groceryEdit, text="Type grocery to add or remove from shopping list").pack()
+  displayGrocery = tk.Button(master=groceryEdit, text="View shopping list", command=lambda:displayGroceryList())
+  displayGrocery.pack()
+  groceryEntry = tk.Entry(master=groceryEdit, width=9)
+  groceryEntry.pack()
+  saveButton = tk.Button(master=groceryEdit, text="Save", command=lambda:updateGroceryList(groceryEntry.get()))
+  saveButton.pack()
+  closeButton = tk.Button(master=groceryEdit, text="Close", command=lambda:groceryEdit.destroy())
+  closeButton.pack()
 
-# Saves added birthdays and closes addWindow
-def addToDict(nameSelected, monthSelected, dateSelected, yearSelected):
-  global addWindow
-  if nameSelected in birthdayDict:
-    errorWindow = tk.Toplevel()
-    errorMessage = tk.Label(
-        master=errorWindow,
-        text="Birthday already exists. Try the edit button")
-    errorButton = tk.Button(master=errorWindow,
-                            text="Close",
-                            command=lambda: errorWindow.destroy())
-    errorMessage.pack()
-    errorButton.pack()
-  else:
-    m = str(months.index(monthSelected) + 1)
-    if (int(m) < 10): m = "0" + m
-    birthdayDict[nameSelected] = m + "/" + dateSelected + "/" + yearSelected
-    addWindow.destroy()
+def editFood():
+  global foodDict
+  editWindow = tk.Toplevel()
+  dropFrame = tk.Frame(editWindow)
+  groceryLabel = tk.StringVar()
+  groceryLabel.set("Select grocery")
+  groceryDrop = tk.OptionMenu(dropFrame, groceryLabel, *foodDict.keys())
+  groceryDrop.pack()
+  dropFrame.pack()
+  quantityEntry = tk.Entry(master=editWindow, width=5)
+  quantityEntry.pack()
+  editButton = tk.Button(master=editWindow, text="Save", command=lambda:editWindow.destroy())
+  editButton.pack()
 
-
-# Add birthday window
-def addBirthday():
-  global months, dates, addWindow
-
-  addWindow = tk.Toplevel()
-
-  frame2 = tk.Frame(master=addWindow)
-  nameLabel = tk.Label(master=frame2, text="Enter name")
-  nameEntry = tk.Entry(master=frame2, width=10)
-  yearLabel = tk.Label(master=frame2, text="Enter the birth year")
-  year = tk.Entry(master=frame2, width=6)
-  nameLabel.pack()
-  nameEntry.pack()
-  yearLabel.pack()
-  year.pack()
-  frame2.pack(side=tk.TOP)
-
-  frame3 = tk.Frame(master=addWindow)
-  monthLabel = tk.StringVar()
-  monthLabel.set("Select a month")
-  monthDrop = tk.OptionMenu(frame3, monthLabel, *months)
-  monthDrop.pack()
-  frame3.pack(side=tk.TOP)
-
-  frame4 = tk.Frame(master=addWindow)
-  dateLabel = tk.StringVar()
-  dateLabel.set("Select a date")
-  dateDrop = tk.OptionMenu(frame4, dateLabel, *dates)
-  submitButton = tk.Button(master=frame4,
-                           text="Save",
-                           command=lambda: addToDict(nameEntry.get(
-                           ), monthLabel.get(), dateLabel.get(), year.get()))
-  dateDrop.pack()
-  submitButton.pack()
-  frame4.pack(side=tk.TOP)
-
-
-# Ends program and saves birthdays to file
-def closeWindow():
+def saveAndExit():
   global window
   window.destroy()
-  birthdayFile = open('birthdays.txt', 'w')
-  for bday in birthdayDict:
-    birthdayFile.write(bday + ": " + birthdayDict[bday] + "\n")
-  birthdayFile.close()
-  exit()
+  writeFood = open("food.txt", 'w')
+  writeShopping = open("shoppinglist.txt", 'w')
+  for food in foodDict:
+    writeFood.write(food+": "+str(foodDict[food][0])+" servings (Last Updated: "+foodDict[food][1]+")\n")
+  for item in shoppingList:
+    writeShopping.write(item+"\n")
 
-
-# Homepage
-frame1 = tk.Frame(master=window)
-displayButton = tk.Button(master=frame1,
-                          text="Show birthdays",
-                          command=lambda: displayBirthdays())
-addButton = tk.Button(master=frame1,
-                      text="Add birthday",
-                      command=lambda: addBirthday())
-editButton = tk.Button(master=frame1,
-                       text="Edit birthday",
-                       command=lambda: editBirthdays())
-doneButton = tk.Button(master=frame1,
-                       text="Done? Click to save & exit",
-                       command=lambda: closeWindow())
+descriptionLabel = tk.Label(master=window, text="Welcome to your Grocery Tracker!\n Today is "+today+".")
+descriptionLabel.pack()
+displayButton = tk.Button(master=window, text="View Grocery", command=lambda:displayFood())
 displayButton.pack()
+addButton = tk.Button(master=window, text="Add Grocery", command=lambda: addFood())
 addButton.pack()
-editButton.pack()
-doneButton.pack()
-frame1.pack()
+listButton = tk.Button(master=window, text="Grocery List", command=lambda: groceryList())
+listButton.pack()
+removeButton = tk.Button(master=window, text="Update Grocery", command=lambda: editFood())
+removeButton.pack()
+exitButton = tk.Button(master=window, text="Save and Exit", command=lambda: saveAndExit())
+exitButton.pack()
 
-# Mainloop so window doesn't disappear
 window.mainloop()
